@@ -3,7 +3,6 @@ import os
 
 
 def get_path(start=(0,0), end=(3,3), barriers=set(), map_width=4, map_height=4):
-	os.chdir("C:\\Users\\jmpark8187\\Documents\\Python\\pathfinding")
 	f = open("path.txt", 'w')
 	(x,y) = start
 	barriers = setup_barriers(map_width, map_height, barriers)
