@@ -1,6 +1,6 @@
 # A* algorithm for path finding
 
-### methods:
+### cmain:
 * get_path
-> * input : start, end, barriers, map_width, map_height
-> * output : path
+> * input: by manual or my main interface
+> * output: return and path.txt
