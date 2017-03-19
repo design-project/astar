@@ -27,6 +27,7 @@ Classes:
 """
 import pygame as pg
 import solver
+import cmain
 
 width = 22
 height = 14
@@ -215,6 +216,7 @@ class Interface(object):
             self.mode = "SOLVED"
             self.render_text("SOLVED")
         self.render_text("TIME")
+        cmain.get_path(self.start_cell, self.goal_cell, self.barriers, width, height)
 
     def fill_cell(self,cell,color,Surf):
         """Fills a single cell given coordinates, color, and a target Surface."""

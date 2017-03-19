@@ -16,6 +16,7 @@ Functions:
 import sys,os
 import pygame as pg
 import interface
+import cmain
 
 width = 22
 height = 14
