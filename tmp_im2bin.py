@@ -15,6 +15,7 @@ class im2bin(object):
     	self.width = State.width
     	self.height = State.height
     	self.barriers = State.barriers
+        self.direction = (1,0)
 
     def set_grid_size(self, size):
     	grid_size = size
