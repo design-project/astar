@@ -16,10 +16,12 @@ Functions:
 import sys,os
 import pygame as pg
 import interface
-import cmain
+import pathmap
+import tmp_im2bin
 
 width = 22
 height = 14
+
 
 class Control(object):
     """Driver class for the whole program."""
@@ -29,6 +31,7 @@ class Control(object):
         self.Clock = pg.time.Clock()
         self.fps = 50
         self.State = interface.Interface()
+
     def event_loop(self):
         """Check event queue and pass events to states as necessary."""
         for event in pg.event.get():
@@ -60,3 +63,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+print "hello"

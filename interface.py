@@ -27,13 +27,15 @@ Classes:
 """
 import pygame as pg
 import solver
-import cmain
+import pathmap
+import tmp_im2bin
 
-width = 22
-height = 14
 
 class Interface(object):
+
     def __init__(self):
+        self.width = 22
+        self.height = 14
         self.animate = False
         self.cell_size = (20,20)
         self.image = self.make_background()
@@ -44,12 +46,12 @@ class Interface(object):
 
     def make_background(self):
         """Create grid image. Currently screen and cell size are hardcoded."""
-        image = pg.Surface((width*20,height*20)).convert()
+        image = pg.Surface((self.width*20,self.height*20)).convert()
         image.set_colorkey((255,0,255))
         image.fill((255,0,255),(20,20,400,240))
-        for i in range(width -1):
+        for i in range(self.width -1):
             image.fill((255,0,0),(20+20*i,20,2,242))
-        for i in range(height -1):
+        for i in range(self.height -1):
             image.fill((255,0,0),(20,20+20*i,400,2))
         return image
 
@@ -74,11 +76,11 @@ class Interface(object):
         self.add_barrier = False
         self.del_barrier = False
         barriers = set()
-        for i in range(0,width):
-            for j in (0,height-1):
+        for i in range(0,self.width):
+            for j in (0,self.height-1):
                 barriers.add((i,j))
-        for j in range(0,height):
-            for i in (0,width-1):
+        for j in range(0,self.height):
+            for i in (0,self.width-1):
                 barriers.add((i,j))
         return barriers
 
@@ -216,7 +218,8 @@ class Interface(object):
             self.mode = "SOLVED"
             self.render_text("SOLVED")
         self.render_text("TIME")
-        cmain.get_path(self.start_cell, self.goal_cell, self.barriers, width, height)
+        self.im2bin = tmp_im2bin.im2bin(self)
+        self.PathMap = pathmap.PathMap(self.im2bin)
 
     def fill_cell(self,cell,color,Surf):
         """Fills a single cell given coordinates, color, and a target Surface."""
