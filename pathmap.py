@@ -1,6 +1,7 @@
 import solver
 import os
 import numpy as np
+import tmp_im2bin as im2bin
 
 def unit(vector):
 	return vector/np.linalg.norm(vector)
@@ -9,12 +10,21 @@ def rad2deg(rad):
 	result = rad * 180 / np.pi
 	return round(result, 3)
 
+def _dist(p1, p2, p3):
+	""" p1, p2 makes line l1. return dist between l1 and p3"""
+	p1 = np.array(p1)
+	p2 = np.array(p2)
+	p3 = np.array(p3)
+	if p3[0] > max(p1[0], p2[0]) or p3[1] > max(p1[1], p2[1]):
+		return 9999 # as infinite
+	return np.linalg.norm(np.cross(p2-p1, p3-p1))/np.linalg.norm(p2-p1)
+
 
 class PathMap(object):
 	def __init__(self, im2bin):
 		barriers = self._setup_barriers(im2bin.width, im2bin.height, im2bin.barriers)
 		waypoint = self._find_path(im2bin.start, im2bin.end, im2bin.barriers, im2bin.width, im2bin.height)
-		cmd = self._waypoint2cmd(im2bin.start, self.waypoint, im2bin.dir)
+		cmd = self._waypoint2cmd(im2bin.start, waypoint, im2bin.dir)
 
 	def fwrite_path(txt):
 		f = open(txt, 'w')
@@ -56,4 +66,28 @@ class PathMap(object):
 			start = end
 			prev_dir = cur_dir
 		return cmd
+
+	def _is_reducable(self, p):
+		return len(filter((lambda x : _dist(p[1], p[3], x) <= 1), self.barriers))==0
+
+	def _reduce_waypoint_1step(self, wp):
+		accum = []
+		while 1:
+			if len(wp) < 3:
+				return accum + wp
+			elif _is_reducable(wp[0:3]):
+				return accum + [wp[0], wp[2]] + wp[3:]
+			else:
+				accum = accum + [wp[0]]
+				wp = wp[1:]
+				continue
+
+	def _reduce_waypoint(self):
+		wp = self.waypoint
+		while 1:
+			prev_len = len(wp)
+			wp = _reduce_waypoint_1step(wp)
+			if prev_len == len(wp):
+				break
+		return wp
 
