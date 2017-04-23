@@ -27,20 +27,23 @@ class PathMap(object):
 	def __init__(self, i2b):
 
 		self.im2bin = i2b
-		self.barriers = self._setup_barriers(i2b.width, i2b.height, i2b.barriers)
-		self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width, i2b.height)
+		self.barriers = self._setup_barriers(i2b.width+2, i2b.height+2, i2b.barriers)
+		self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width+2, i2b.height+2)
 		self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
 		self.reduced_waypoint = self._reduce_waypoint()
 		self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
 
 	def fwrite_path(self, txt):
 		f = open(txt, 'w')
+		f.write("width, height: " + str(self.im2bin.width) + ", " + str(self.im2bin.height) + "\n")
+		f.write("original barriers: " + str(self.im2bin.barriers) + "\n")
+		f.write("barriers: " + str(self.barriers) + "\n")
 		f.write("start: " + str(self.im2bin.start) + "\n")
 		f.write("goal: " + str(self.im2bin.end) + "\n")
 		f.write("path: " + str(self.waypoint) + " \n")
-		f.write("cmd: "  + str(self.cmd) + " \n")
+		#f.write("cmd: "  + str(self.cmd) + " \n")
 		f.write("reduced_path" + str(self.reduced_waypoint) + " \n")
-		f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
+		#f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
 		f.close()
 
 	def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
