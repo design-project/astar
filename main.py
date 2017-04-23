@@ -5,7 +5,7 @@ License: Free for everyone and anything (no warranty expressed or implied)
 Module: main.py
 Overview: Primary driver for entire program.
 Classes:
-    Control(object):i
+    Control(object):
         Methods:
             __init__(self)
             event_loop(self)

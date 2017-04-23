@@ -220,6 +220,7 @@ class Interface(object):
         self.render_text("TIME")
         self.im2bin = tmp_im2bin.im2bin(self)
         self.PathMap = pathmap.PathMap(self.im2bin)
+        self.PathMap.fwrite_path('path.txt')
 
     def fill_cell(self,cell,color,Surf):
         """Fills a single cell given coordinates, color, and a target Surface."""

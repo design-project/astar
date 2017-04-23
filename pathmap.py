@@ -1,7 +1,6 @@
 import solver
 import os
 import numpy as np
-import tmp_im2bin as im2bin
 
 def unit(vector):
 	return vector/np.linalg.norm(vector)
@@ -15,23 +14,34 @@ def _dist(p1, p2, p3):
 	p1 = np.array(p1)
 	p2 = np.array(p2)
 	p3 = np.array(p3)
-	if p3[0] > max(p1[0], p2[0]) or p3[1] > max(p1[1], p2[1]):
+	if p3[0] > max(p1[0], p2[0]) or p3[1] > max(p1[1], p2[1])\
+	or p3[0] < min(p1[0], p2[0]) or p3[1] < min(p1[1],p2[1]) :
 		return 9999 # as infinite
+	elif p1[0]==p2[0]:
+		return abs(p3[0]-p1[0])
+	elif p1[1]==p2[1]:
+		return abs(p3[1]-p1[1])
 	return np.linalg.norm(np.cross(p2-p1, p3-p1))/np.linalg.norm(p2-p1)
 
-
 class PathMap(object):
-	def __init__(self, im2bin):
-		barriers = self._setup_barriers(im2bin.width, im2bin.height, im2bin.barriers)
-		waypoint = self._find_path(im2bin.start, im2bin.end, im2bin.barriers, im2bin.width, im2bin.height)
-		cmd = self._waypoint2cmd(im2bin.start, waypoint, im2bin.dir)
+	def __init__(self, i2b):
 
-	def fwrite_path(txt):
+		self.im2bin = i2b
+		self.barriers = self._setup_barriers(i2b.width, i2b.height, i2b.barriers)
+		self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width, i2b.height)
+		self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
+		self.reduced_waypoint = self._reduce_waypoint()
+		self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
+
+	def fwrite_path(self, txt):
 		f = open(txt, 'w')
-		f.write("start: " + str(im2bin.start) + "\n")
-		f.write("goal: " + str(im2bin.end) + "\n")
+		f.write("start: " + str(self.im2bin.start) + "\n")
+		f.write("goal: " + str(self.im2bin.end) + "\n")
 		f.write("path: " + str(self.waypoint) + " \n")
-		f.write("cmd: "  + str(cmd) + " \n")
+		f.write("cmd: "  + str(self.cmd) + " \n")
+		f.write("reduced_path" + str(self.reduced_waypoint) + " \n")
+		f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
+		f.close()
 
 	def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
 		if map_width != -1 and map_height != -1:
@@ -68,14 +78,14 @@ class PathMap(object):
 		return cmd
 
 	def _is_reducable(self, p):
-		return len(filter((lambda x : _dist(p[1], p[3], x) <= 1), self.barriers))==0
+		return len(filter((lambda x : _dist(p[0], p[2], x) <= 1), self.barriers))==0
 
 	def _reduce_waypoint_1step(self, wp):
 		accum = []
 		while 1:
 			if len(wp) < 3:
 				return accum + wp
-			elif _is_reducable(wp[0:3]):
+			elif self._is_reducable(wp[0:3]):
 				return accum + [wp[0], wp[2]] + wp[3:]
 			else:
 				accum = accum + [wp[0]]
@@ -83,10 +93,10 @@ class PathMap(object):
 				continue
 
 	def _reduce_waypoint(self):
-		wp = self.waypoint
+		wp = list(self.waypoint)
 		while 1:
 			prev_len = len(wp)
-			wp = _reduce_waypoint_1step(wp)
+			wp = self._reduce_waypoint_1step(wp)
 			if prev_len == len(wp):
 				break
 		return wp
