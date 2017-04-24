@@ -14,8 +14,7 @@ def _dist(p1, p2, p3):
 	p1 = np.array(p1)
 	p2 = np.array(p2)
 	p3 = np.array(p3)
-	if p3[0] > max(p1[0], p2[0]) or p3[1] > max(p1[1], p2[1])\
-	or p3[0] < min(p1[0], p2[0]) or p3[1] < min(p1[1],p2[1]) :
+	if p3[0] > max(p1[0], p2[0]) or p3[1] > max(p1[1], p2[1]) or p3[0] < min(p1[0], p2[0]) or p3[1] < min(p1[1],p2[1]) :
 		return 9999 # as infinite
 	elif p1[0]==p2[0]:
 		return abs(p3[0]-p1[0])
@@ -29,21 +28,25 @@ class PathMap(object):
 		self.im2bin = i2b
 		self.barriers = self._setup_barriers(i2b.width+2, i2b.height+2, i2b.barriers)
 		self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width+2, i2b.height+2)
-		self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
-		self.reduced_waypoint = self._reduce_waypoint()
-		self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
+		if self.waypoint == "NO SOLUTION":
+			return
+		else:
+			self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
+			self.reduced_waypoint = self._reduce_waypoint()
+			self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
 
 	def fwrite_path(self, txt):
 		f = open(txt, 'w')
-		f.write("width, height: " + str(self.im2bin.width) + ", " + str(self.im2bin.height) + "\n")
-		f.write("original barriers: " + str(self.im2bin.barriers) + "\n")
-		f.write("barriers: " + str(self.barriers) + "\n")
-		f.write("start: " + str(self.im2bin.start) + "\n")
-		f.write("goal: " + str(self.im2bin.end) + "\n")
-		f.write("path: " + str(self.waypoint) + " \n")
-		#f.write("cmd: "  + str(self.cmd) + " \n")
-		f.write("reduced_path" + str(self.reduced_waypoint) + " \n")
-		#f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
+		if self.waypoint == "NO SOLUTION":
+			f.write("NO SOLUTION!!!")
+		else:
+			f.write("width, height: " + str(self.im2bin.width) + ", " + str(self.im2bin.height) + "\n")
+			f.write("start: " + str(self.im2bin.start) + "\n")
+			f.write("goal: " + str(self.im2bin.end) + "\n")
+			f.write("path: " + str(self.waypoint) + " \n")
+			f.write("cmd: "  + str(self.cmd) + " \n")
+			f.write("reduced_path" + str(self.reduced_waypoint) + " \n")
+			f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
 		f.close()
 
 	def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
@@ -67,6 +70,7 @@ class PathMap(object):
 
 	def _waypoint2cmd(self, start, pos, prev_dir=np.array([1,0])):
 		cmd = []
+		start = np.asarray(start)
 		if pos == []:
 			return cmd
 		while pos != []:
@@ -103,4 +107,3 @@ class PathMap(object):
 			if prev_len == len(wp):
 				break
 		return wp
-

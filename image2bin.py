@@ -4,7 +4,7 @@ import numpy as np
 import PIL
 from PIL import Image
 
-stepsize = 300
+stepsize = 100
 
 
 class im2bin:
@@ -12,14 +12,12 @@ class im2bin:
 		#open image and convert into greyscale
 		im = Image.open('demo.jpeg')
 		im_grey = im.convert('L') # convert the image to *greyscale*
-		#bw = im_grey.point(lambda x: 0 if x<128 else 255, '1')
 		im_array = np.array(im_grey)
-		#np.savetxt("bin.txt", bw, delimiter=',')
 
 		num_rows, num_cols = np.shape(im_array)
 
-		self.start = (3, 1)
-		self.end = (10, 5)
+		self.start = (2, 2)
+		self.end = (8, 2)
 		self.dir = (0,1)
 		self.height = int(num_rows/stepsize)
 		self.width = int(num_cols/stepsize)
@@ -40,10 +38,7 @@ class im2bin:
 		    for j in range(0, self.width):
 			if (map[i,j] < 10000):
 			    barriers_array.append((j+1,i+1))
-		#barriers =barriers_array.tolist()
 		self.barriers = {}
 		self.barriers = set(barriers_array)
 
 		np.savetxt("barriers.txt", barriers_array, delimiter=',')
-		#self.width = np.zeros((int(num_rows/stepsize),num_cols))
-		#reduced_array = np.zeros((int(num_rows/stepsize), int(num_cols/stepsize)))
