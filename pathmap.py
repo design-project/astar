@@ -1,4 +1,4 @@
-import solver
+import dstar
 import os
 import numpy as np
 
@@ -52,7 +52,7 @@ class PathMap(object):
 	def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
 		if map_width != -1 and map_height != -1:
 			barriers = self._setup_barriers(map_width, map_height, barriers)
-		Solver = solver.Star(start, end, barriers)
+		Solver = dstar.Dstar(start, end, barriers, map_width, map_height)
 		while 1:
 			if Solver.solution:
 				break
@@ -101,9 +101,11 @@ class PathMap(object):
 
 	def _reduce_waypoint(self):
 		wp = list(self.waypoint)
+		wp = wp+[self.im2bin.start]
 		while 1:
 			prev_len = len(wp)
 			wp = self._reduce_waypoint_1step(wp)
 			if prev_len == len(wp):
 				break
+		wp.pop()
 		return wp
