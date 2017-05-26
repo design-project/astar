@@ -1,6 +1,7 @@
 import dstar
 import os
 import numpy as np
+import math
 
 def unit(vector):
     return vector/np.linalg.norm(vector)
@@ -24,20 +25,28 @@ def _dist(p1, p2, p3):
 
 class PathMap(object):
     def __init__(self, i2b):
+        self.im2bin = i2b
+        self.barriers = i2b.barriers
         self.waypoint = []
-        self.barriers = set()
-        self.update(i2b)
+        self.cmd = []
+        self.reduced_waypoint = []
+        self.reduced_cmd = []
+        self.passing_point = [] # list of set. robot must pass this points going through reduced waypoint
+        self.update_path(i2b)
 
-    def is_blocked(self, i2b):
-        if (self.waypoint == [] or self.waypoint == "NO SOLUTION"):
+    def need_path_update(self, i2b):
+        if (self.waypoint == [] or self.waypoint == "NO SOLUTION"): # no path is planned
             return True
-        elif (set(self.waypoint) & i2b.barriers):
+        new_barriers = i2b.barriers - self.barriers
+        dist_wp = map(lambda x : math.sqrt((x[0]-i2b.start[0])^2 + (x[1]-i2b.start[1])^2), self.waypoint) # calculate dist(cur_pos, planned path)
+        if not filter(lambda x : x<2, dist_wp): # if cur pos is too far from planned path (by inaccuracy)
+            return True
+        elif (set(waypoint[argmin(np.array(dist_wp)):]) & i2b.barriers): # if remaining path is blocked
             return True
         else:
             return False
 
-    def update(self, i2b):
-        self.im2bin = i2b
+    def update_path(self, i2b):
         # self.barriers = self._setup_barriers(i2b.width+2, i2b.height+2, i2b.barriers)
         self.barriers = i2b.barriers
         self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width+2, i2b.height+2)
@@ -47,7 +56,7 @@ class PathMap(object):
             self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
             self.reduced_waypoint = self._reduce_waypoint()
             self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
-
+            self.passing_point = self._find_passing_point()
 
     def fwrite_path(self, txt):
         f = open(txt, 'w')
@@ -62,20 +71,26 @@ class PathMap(object):
             f.write("goal: " + str(self.im2bin.end) + "\n")
             f.write("path: " + str(self.waypoint) + " \n")
             f.write("cmd: "  + str(self.cmd) + " \n")
-            f.write("reduced_path" + str(self.reduced_waypoint) + " \n")
+            f.write("reduced_waypoint" + str(self.reduced_waypoint) + " \n")
             f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
+            f.write("passing_point" + str(self.passing_point) + " \n")
         f.close()
 
     def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
+        """
         if map_width != -1 and map_height != -1:
             barriers = self._setup_barriers(map_width, map_height, barriers)
+        """
         Solver = dstar.Dstar(start, end, barriers, map_width, map_height)
         while 1:
             if Solver.solution:
                 break
             Solver.evaluate()
+        Solver.solution.append(self.im2bin.start)
+        Solver.solution.reverse()
         return Solver.solution
 
+    """
     def _setup_barriers(self, width, height, barriers):
         for i in range(0,width):
             for j in (0,height-1):
@@ -84,14 +99,14 @@ class PathMap(object):
             for i in (0,width-1):
                 barriers.add((i,j))
         return barriers
-
+    """
     def _waypoint2cmd(self, start, pos, prev_dir=np.array([1,0])):
         cmd = []
-        start = np.asarray(start)
         if pos == []:
             return cmd
+        start = np.asarray(pos.pop(0))
         while pos != []:
-            end = np.asarray(pos.pop())
+            end = np.asarray(pos.pop(0))
             cur_dir = unit(end-start)
             sign = np.sign(np.linalg.det([prev_dir, cur_dir])) # if v1 is ccw from v2, then pos
             if sign==0: sign = 1
@@ -102,7 +117,7 @@ class PathMap(object):
         return cmd
 
     def _is_reducable(self, p):
-        return len(filter((lambda x : _dist(p[0], p[2], x) <= 1), self.barriers))==0
+        return len(filter((lambda x : _dist(p[0], p[2], x) <= 1.5), self.barriers))==0
 
     def _reduce_waypoint_1step(self, wp):
         accum = []
@@ -118,11 +133,28 @@ class PathMap(object):
 
     def _reduce_waypoint(self):
         wp = list(self.waypoint)
-        wp = wp+[self.im2bin.start]
         while 1:
             prev_len = len(wp)
             wp = self._reduce_waypoint_1step(wp)
             if prev_len == len(wp):
                 break
-        wp.pop()
         return wp
+
+    def _find_passing_point_1step(self, a, b):
+        passing_point_1step = set()
+        print "find_passing_point_1step start"
+        for i in range(min(a[0],b[0]), max(a[0],b[0])+1):
+            for j in range(min(a[1],b[1]), max(a[1],b[1])+1):
+                print "("+str(i)+","+str(j)+")"+" find passing point"
+                if _dist(a,b, (i,j)) <= 1.5:
+                    passing_point_1step.add((i,j))
+        return passing_point_1step
+
+    def _find_passing_point(self):
+        print "find_passing_point start"
+        passing_point = []
+        print "len(reduced_waypoint) is" + str(len(self.reduced_waypoint))
+        for i in range(len(self.reduced_waypoint)-1):
+            passing_point.append(self._find_passing_point_1step(self.reduced_waypoint[i], self.reduced_waypoint[i+1]))
+        passing_point.append(self._find_passing_point_1step(self.im2bin.start, self.reduced_waypoint[len(self.reduced_waypoint)-1]))
+        return passing_point
