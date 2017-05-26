@@ -36,18 +36,23 @@ class PathMap(object):
 
     def need_path_update(self, i2b):
         if (self.waypoint == [] or self.waypoint == "NO SOLUTION"): # no path is planned
+            print "NO SOLUTION"
             return True
         new_barriers = i2b.barriers - self.barriers
         i=len(self.passing_point)-1
         is_in_path = False
         while i >= 0:
-            if self.passing_point[i]&set(i2b.start):
+            start_set = set()
+            start_set.add(i2b.start)
+            if (len(self.passing_point[i]&(start_set)) != 0):
                 is_in_path = True
                 break
             i = i-1
         if not is_in_path: # if cur pos is too far from planned path (maybe because of inaccuracy)
+            print "not in path"
             return True
-        elif (filter(lambda x: x&new_barriers != {}), passing_point[i:]): # if remaining path is blocked
+        elif (len(filter((lambda x: len(x&new_barriers) != 0), self.passing_point[i:])) != 0): # if remaining path is blocked
+            print "path is blocked"
             return True
         else:
             return False

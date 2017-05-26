@@ -23,4 +23,5 @@ while 1:
         f_interrupt = open("interrupt.txt",'w')
         f_interrupt.write("0")
         f_interrupt.close()
+        print "no need to update"
     PathMap.barriers = i2b.barriers
