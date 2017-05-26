@@ -92,6 +92,9 @@ class PathMap(object):
             if Solver.solution:
                 break
             Solver.evaluate()
+        if Solver.solution == "NO SOLUTION":
+            return Solver.solution
+
         Solver.solution.append(self.im2bin.start)
         Solver.solution.reverse()
         return Solver.solution

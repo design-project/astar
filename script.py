@@ -12,15 +12,14 @@ f_interrupt.close()
 while 1:
     time.sleep(1)
     i2b.update()
-    if PathMap.need_update(i2b):
+    if PathMap.need_path_update(i2b):
         f_interrupt = open("interrupt.txt",'w')
         f_interrupt.write("1")
         f_interrupt.close()
         print "path update"
-        PathMap.update(i2b)
+        PathMap.barriers = i2b.barriers
     else:
         f_interrupt = open("interrupt.txt",'w')
         f_interrupt.write("0")
         f_interrupt.close()
     PathMap.barriers = i2b.barriers
-
