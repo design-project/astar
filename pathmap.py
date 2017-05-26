@@ -38,10 +38,16 @@ class PathMap(object):
         if (self.waypoint == [] or self.waypoint == "NO SOLUTION"): # no path is planned
             return True
         new_barriers = i2b.barriers - self.barriers
-        dist_wp = map(lambda x : math.sqrt((x[0]-i2b.start[0])^2 + (x[1]-i2b.start[1])^2), self.waypoint) # calculate dist(cur_pos, planned path)
-        if not filter(lambda x : x<2, dist_wp): # if cur pos is too far from planned path (by inaccuracy)
+        i=len(self.passing_point-1)
+        is_in_path = False
+        while i >= 0:
+            if passing_point(i)&set(i2b.start):
+                is_in_path = True
+                break
+            i = i-1
+        if not is_in_path: # if cur pos is too far from planned path (maybe because of inaccuracy)
             return True
-        elif (set(waypoint[argmin(np.array(dist_wp)):]) & i2b.barriers): # if remaining path is blocked
+        elif (filter(lambda x: x&new_barriers != {}), passing_point[i:]): # if remaining path is blocked
             return True
         else:
             return False
@@ -142,18 +148,14 @@ class PathMap(object):
 
     def _find_passing_point_1step(self, a, b):
         passing_point_1step = set()
-        print "find_passing_point_1step start"
         for i in range(min(a[0],b[0]), max(a[0],b[0])+1):
             for j in range(min(a[1],b[1]), max(a[1],b[1])+1):
-                print "("+str(i)+","+str(j)+")"+" find passing point"
                 if _dist(a,b, (i,j)) <= 1.5:
                     passing_point_1step.add((i,j))
         return passing_point_1step
 
     def _find_passing_point(self):
-        print "find_passing_point start"
         passing_point = []
-        print "len(reduced_waypoint) is" + str(len(self.reduced_waypoint))
         for i in range(len(self.reduced_waypoint)-1):
             passing_point.append(self._find_passing_point_1step(self.reduced_waypoint[i], self.reduced_waypoint[i+1]))
         passing_point.append(self._find_passing_point_1step(self.im2bin.start, self.reduced_waypoint[len(self.reduced_waypoint)-1]))
