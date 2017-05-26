@@ -57,12 +57,14 @@ class PathMap(object):
         self.barriers = i2b.barriers
         self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width+2, i2b.height+2)
         if self.waypoint == "NO SOLUTION":
+            self.fwrite_path("path.txt")
             return
         else:
             self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
             self.reduced_waypoint = self._reduce_waypoint()
             self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
             self.passing_point = self._find_passing_point()
+            self.fwrite_path("path.txt")
 
     def fwrite_path(self, txt):
         f = open(txt, 'w')

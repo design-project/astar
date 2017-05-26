@@ -16,8 +16,8 @@ while 1:
         f_interrupt = open("interrupt.txt",'w')
         f_interrupt.write("1")
         f_interrupt.close()
+        PathMap.update_path(i2b)
         print "path update"
-        PathMap.barriers = i2b.barriers
     else:
         f_interrupt = open("interrupt.txt",'w')
         f_interrupt.write("0")
