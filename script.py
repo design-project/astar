@@ -17,6 +17,7 @@ while 1:
         f_interrupt.write("1")
         f_interrupt.close()
         PathMap.update_path(i2b)
+        PathMap.fwrite_path("path.txt")
         print "path update"
     else:
         f_interrupt = open("interrupt.txt",'w')

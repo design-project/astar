@@ -38,10 +38,10 @@ class PathMap(object):
         if (self.waypoint == [] or self.waypoint == "NO SOLUTION"): # no path is planned
             return True
         new_barriers = i2b.barriers - self.barriers
-        i=len(self.passing_point-1)
+        i=len(self.passing_point)-1
         is_in_path = False
         while i >= 0:
-            if passing_point(i)&set(i2b.start):
+            if self.passing_point[i]&set(i2b.start):
                 is_in_path = True
                 break
             i = i-1
@@ -57,14 +57,12 @@ class PathMap(object):
         self.barriers = i2b.barriers
         self.waypoint = self._find_path(i2b.start, i2b.end, i2b.barriers, i2b.width+2, i2b.height+2)
         if self.waypoint == "NO SOLUTION":
-            self.fwrite_path("path.txt")
             return
         else:
             self.cmd = self._waypoint2cmd(i2b.start, list(self.waypoint), i2b.dir)
             self.reduced_waypoint = self._reduce_waypoint()
             self.reduced_cmd = self._waypoint2cmd(i2b.start, list(self.reduced_waypoint), i2b.dir)
             self.passing_point = self._find_passing_point()
-            self.fwrite_path("path.txt")
 
     def fwrite_path(self, txt):
         f = open(txt, 'w')
@@ -111,7 +109,7 @@ class PathMap(object):
                 barriers.add((i,j))
         return barriers
     """
-    def _waypoint2cmd(self, start, pos, prev_dir=np.array([1,0])):
+    def _waypoint2cmd(self, start, pos, prev_dir):
         cmd = []
         if pos == []:
             return cmd
@@ -163,5 +161,4 @@ class PathMap(object):
         passing_point = []
         for i in range(len(self.reduced_waypoint)-1):
             passing_point.append(self._find_passing_point_1step(self.reduced_waypoint[i], self.reduced_waypoint[i+1]))
-        passing_point.append(self._find_passing_point_1step(self.im2bin.start, self.reduced_waypoint[len(self.reduced_waypoint)-1]))
         return passing_point
