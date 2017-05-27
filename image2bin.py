@@ -43,7 +43,7 @@ class im2bin:
                 if (map[i,j] < 10000):
                     barriers_array.append((j+1,i+1))
         self.barriers = set()
-        #self.barriers = set(barriers_array)
+        self.barriers = set(barriers_array)
 
 
         np.savetxt("barriers.txt", barriers_array, delimiter=',')

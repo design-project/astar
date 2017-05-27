@@ -71,8 +71,10 @@ class PathMap(object):
 
     def fwrite_path(self, txt):
         f = open(txt, 'w')
+        test = open("test.txt", 'w')
         if self.waypoint == "NO SOLUTION":
             f.write("NO SOLUTION!!!")
+            test.write("NO SOLUTION!!!")
             f_interrupt = open("interrupt.txt", 'w')
             f_interrupt.write("1")
             f_interrupt.close()
@@ -85,7 +87,9 @@ class PathMap(object):
             f.write("reduced_waypoint" + str(self.reduced_waypoint) + " \n")
             f.write("reduced_cmd" + str(self.reduced_cmd) + " \n")
             f.write("passing_point" + str(self.passing_point) + " \n")
+            test.write(str(self.reduced_cmd))
         f.close()
+        test.close()
 
     def _find_path(self, start=(2,2), end=(3,3), barriers=set(), map_width=-1, map_height=-1):
         """
